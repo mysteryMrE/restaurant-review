@@ -1,0 +1,24 @@
+{
+    "manifest_version": 3,
+    "name": "Michelin Mole",
+    "version": "1.0.0",
+    "icons": {
+        "128": "icons/transparent.png",
+        "32": "icons/transparent.png",
+        "48": "icons/transparent.png",
+        "16": "icons/transparent.png"
+    },
+    "permissions": [
+        "scripting", 
+        "storage", 
+        "sidePanel",
+        "tabs"
+    ],
+    "host_permissions": ["<all_urls>"],
+    "side_panel": {
+        "default_path": "index.html"
+    },
+    "background": {
+        "service_worker": "background.js"
+    }
+}

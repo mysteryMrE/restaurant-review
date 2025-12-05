@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+chroma_db/
+chromadb/
+reviews_cache.db
+debug_reviews.json
+realistic_restaurant_reviews.csv
