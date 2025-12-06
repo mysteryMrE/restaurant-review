@@ -9,13 +9,9 @@ from database import (
 )
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-
-import asyncio
 from fastapi.middleware.cors import CORSMiddleware
-
-# reviews = get_cached_reviews("0x4741dc430d5f1069:0x983fa4a49808d3a8")
-# all_revies = reviews["reviews"]
-# embedToVectors("0x4741dc430d5f1069:0x983fa4a49808d3a8", all_revies)
+from serpapi import GoogleSearch
+from datetime import datetime
 
 model = OllamaLLM(model="llama3.2")
 
@@ -33,11 +29,6 @@ prompt = ChatPromptTemplate.from_template(template)
 chain = prompt | model
 
 
-class InitChatRequest(BaseModel):
-    data_id: str
-    api_key: str
-
-
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -48,14 +39,9 @@ app.add_middleware(
 )
 
 
-async def do_something(data_id: str, api_key: str):
-    await asyncio.sleep(1)
-    return "initialized"
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+class InitChatRequest(BaseModel):
+    data_id: str
+    api_key: str
 
 
 class InitResponse(BaseModel):
@@ -63,21 +49,13 @@ class InitResponse(BaseModel):
     data_id: str | None
 
 
-@app.get("/sleep/{data_id}")
-async def sleep_endpoint(data_id: str):
-    await asyncio.sleep(2)
-    return {"status": "awake"}
-
-
-from serpapi import GoogleSearch
-
-
 class ReviewsRequest(BaseModel):
     api_key: str
     target_reviews: int = 8
 
 
-from datetime import datetime
+class QuestionRequest(BaseModel):
+    question: str
 
 
 def prepare_data(all_reviews: dict) -> list[dict]:
@@ -213,25 +191,6 @@ async def remove_cached_place(data_id: str):
     raise HTTPException(status_code=404, detail="Place not found in cache")
 
 
-@app.post("/init_chat", response_model=InitResponse)
-async def init_chat(request: InitChatRequest):
-    data_id = request.data_id
-    api_key = request.api_key
-
-    status = await do_something(data_id, api_key)
-
-    if status != "initialized":
-        raise HTTPException(status_code=500, detail="Initialization failed")
-
-    return InitResponse(
-        name="BAMBA Marha Burger Bár #Astoria BAMBA MARHA BURGER BAR", data_id=data_id
-    )
-
-
-class QuestionRequest(BaseModel):
-    question: str
-
-
 @app.post("/question/{data_id}")
 async def ask_question(data_id: str, request: QuestionRequest):
     question = request.question
@@ -246,8 +205,3 @@ async def ask_question(data_id: str, request: QuestionRequest):
     result = chain.invoke({"reviews": reviews, "question": question})
     print(result)
     return {"answer": result}
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int):
-    return {"item_id": item_id}
